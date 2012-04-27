@@ -1,0 +1,5 @@
+1.git config --global user.name "lilo"
+  git config --global user.email "lo.yu.linux@gmail.com"
+2.git add filename.txt
+3.git commit -m "the message describe what to do with the file or project."
+4.git push
