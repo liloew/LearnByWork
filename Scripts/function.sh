@@ -1,7 +1,7 @@
 #!/bin/bash
 ################################################################################
 #
-#	uthor	 :lilo
+#	Author	 :lilo
 #	Version  :2.1
 #	Date	 :2012-07-07
 #	Copyright:金智教育 www.wisedu.com
