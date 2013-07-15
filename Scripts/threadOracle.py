@@ -1,66 +1,64 @@
 #!/usr/bin/python
-# -*- coding=utf-8 -*-
-
-import cx_Oracle
+# coding=utf-8
+#####################################################################
+#			# create or replace procedure insert_date(i in number)  #
+#			# is													#
+#			# begin													#
+#			#   insert into T_DATE values(i, sysdate);				#
+#			#   commit;												#
+#			# end;													#
+#####################################################################
 import threading
-from random import choice
+import cx_Oracle
+from Queue import Queue
+# Just for measuring the preformance
+import time
 
-class CALL(threading.Thread):
+dsn = cx_Oracle.makedsn('192.168.88.133',"1521",'lilo')
+conn = cx_Oracle.connect('user','passwd',dsn,threaded=True)
+conn.autocommit = True
+# For DBA friendly : Clientinfo,Module and Action
+conn.clientinfo = 'Python 2.4 on RedHat 5.4'
+conn.module = 'cx_Oracle demo'
+conn.action = 'BatchJob #1'
 
-	def __init__(self,arg):
 
-		super(CALL, self).__init__()
-		self.__db = cx_Oracle.connect('user','passwd','tnsnames',threaded=True)
-		self.__cursor = self.__db.cursor()
-		self.ykth = arg
-		
-
-	def __exit__(self):
-
-		self.__cursor.close()
-		self.__db.close()
+class AsyncInsert(threading.Thread):
+	def __init__(self, cur, input):
+		threading.Thread.__init__(self)
+		self.cur = cur
+		self.input = input
 
 	def run(self):
+		while True:
+			if q.empty():
+				self.cur.close()
+				break
+			self.cur.callproc("insert_date", [q.get()])
+			# Python >= 2.6
+			#q.task_done()
 
-		global ykth
-		result = self.__cursor.var(cx_Oracle.STRING)
-		#result = self.__cursor.var(cx_Oracle.CURSOR)
-		#tmp = choice(ykth)
-		self.__cursor.callproc('username.p_xjgl_xjsh_JDJS_grdscai',(3,2012,self.ykth,'system',result))
-		print result,self.ykth
-		
-class GET():
 
-	def __init__(self):
+# OK,let's go.
+start = time.time()
+q = Queue()
 
-		self.__db = cx_Oracle.connect('username','passwd','tnsnames')
-		self.__cursor = self.__db.cursor()
+# Get ID
+sql = 'SELECT object_id FROM T_OBJECT'
+cur1 = conn.cursor()
+result = cur1.execute(sql)
+for r in result:
+	q.put(r[0])
+cur1.close()
 
-	def get(self):
+# How many threads
+for input in xrange(20):
+	cur = conn.cursor()
+	th = AsyncInsert(cur, input)
+	th.start()
+	th.join()
 
-		self.__cursor.execute('select ykth from dscai_xh')
-		rows = self.__cursor.fetchall()
-		return rows
-
-#if __name__ == '__main__':
-
-	#insta1 = CALL()
-def main(num):
-	insta2= GET()
-	ykth = insta2.get()
-	ls_thread = [] 
-	for i in range(num,num+50):
-		t = CALL(arg=int(ykth[i][0]))
-		print i
-		#t.run(final)
-		t.start()
-		ls_thread.append(t)
-	for x in ls_thread:
-		x.join()
-
-if __name__ == '__main__':
-
-	for k in range(3750,3753):
-		#print 50*k
-		#main(50*k)
-		main(k)
+# 关闭连接
+conn.close()
+# How long it take
+print "This consume %f seconds." % (time.time() - start)
