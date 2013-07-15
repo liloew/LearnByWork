@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# coding=utf-8
+# -*- coding=utf-8 -*-
 #####################################################################
 #			# create or replace procedure insert_date(i in number)  #
 #			# is													#
@@ -14,7 +14,7 @@ from Queue import Queue
 # Just for measuring the preformance
 import time
 
-dsn = cx_Oracle.makedsn('192.168.88.133',"1521",'lilo')
+dsn = cx_Oracle.makedsn('DBHost',"Port",'sid')
 conn = cx_Oracle.connect('user','passwd',dsn,threaded=True)
 conn.autocommit = True
 # For DBA friendly : Clientinfo,Module and Action
