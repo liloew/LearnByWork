@@ -8,7 +8,7 @@ class DB_Info(object):
                 """
                 """
                 self.db = DB(host,port,user,passwd,db,charset)
-        def get_replication(self):
+        def get_status(self):
                 """
                 """
                 self.db.execute("show status")
