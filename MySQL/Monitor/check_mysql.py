@@ -55,12 +55,51 @@ class DB_Info(object):
             "LAST_SQL_ERRNO","LAST_SQL_ERROR","REPLICATE_IGNORE_SERVER_IDS","MASTER_SERVER_ID")
         ,row))
         return server_status, replicat_status
+    def get_db(self):
+        """
+        """
+        self.db.execute("""SELECT SCHEMA_NAME,DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME
+            FROM INFORMATION_SCHEMA.SCHEMATA""")
+        rows = self.db.fetchall()
+        database_status = list()
+        for row in rows:
+            database_status.append(
+                dict(zip(("SCHEMA_NAME","DEFAULT_CHARACTER_SET_NAME","DEFAULT_COLLATION_NAME"),
+                    row)))
+        return database_status
+    def get_table(self):
+        """
+        """
+        SQL = """SELECT TABLE_SCHEMA,TABLE_NAME,TABLE_TYPE,ENGINE,ROW_FORMAT,CREATE_TIME,UPDATE_TIME
+        FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'"""
+        table_status = list()
+        self.db.execute(SQL)
+        rows = self.db.fetchall()
+        for row in rows:
+            table_status.append(dict(zip(("TABLE_SCHEMA","TABLE_NAME","TABLE_TYPE","ENGINE","ROW_FORMAT","CREATE_TIME","UPDATE_TIME"), row)))
+        return table_status
+    def get_column(self):
+        """
+        """
+        column_status = list()
+        SQL = """SELECT TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME,
+            IS_NULLABLE,DATA_TYPE,CHARACTER_SET_NAME,COLLATION_NAME,COLUMN_TYPE
+            FROM INFORMATION_SCHEMA.COLUMNS"""
+        self.db.execute(SQL)
+        rows = self.db.fetchall()
+        for row in rows:
+            column_status.append(dict(zip(("TABLE_SCHEMA","TABLE_NAME","COLUMN_NAME","IS_NULLABLE","DATA_TYPE","CHARACTER_SET_NAME","COLLATION_NAME","COLUMN_TYPE"),
+                row)))
+        return column_status
 
 def main():
     db_info = DB_Info("192.168.2.30",3306,"root","Sunline")
     print db_info.get_status()
     print db_info.get_master()
     print db_info.get_slave()
+    print db_info.get_db()
+    print db_info.get_table()
+    print db_info.get_column()
 
 if __name__ == "__main__":
     main()
