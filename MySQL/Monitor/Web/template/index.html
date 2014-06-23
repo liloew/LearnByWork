@@ -96,39 +96,31 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>lilo</td>
-                                    <td>MySQL连接恢复</td>
-                                    <td>实例334Connection OK</td>
-                                    <td>
-                                        <button type="button" class="btn btn-success btn-xs" disabled="disabled">
-                                            正常
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>admin</td>
-                                    <td>MySQL连接中断</td>
-                                    <td>实例334连接未成功,尝试15次</td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger btn-xs" disabled="disabled">
-                                            紧急
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>lilo</td>
-                                    <td>实例334连接中断</td>
-                                    <td>实例334连接中断,Timeout</td>
-                                    <td>
-                                        <button type="button" class="btn btn-warning btn-xs" disabled="disabled">
-                                            警告
-                                        </button>
-                                    </td>
-                                </tr>
+                                {% block tbody %}
+                                    {% for i in alerts %}
+                                        <tr>
+                                            <td>{{ id }}</td>
+                                            <td>{{ receiver }}</td>
+                                            <td>{{ title }}</td>
+                                            <td>{{ abstract }}</td>
+                                            <td>
+                                            {% if level == 0 }}
+                                                <button type="button" class="btn btn-success btn-xs" disabled="disabled">
+                                                    正常
+                                                </button>
+                                            {% else if level == 1 %}
+                                                <button type="button" class="btn btn-warning btn-xs" disabled="disabled">
+                                                    警告
+                                                </button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-danger btn-xs" disabled="disabled">
+                                                    紧急
+                                                </button>
+                                            {% end %}
+                                            </td>
+                                        </tr>
+                                    {% end %}
+                                {% end %}
                             </tbody>
                         </table>
                     {% end %}
