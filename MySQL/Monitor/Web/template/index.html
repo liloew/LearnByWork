@@ -176,6 +176,20 @@
         <script src="{{ static_url("js/Chart.min.js") }}"></script>
         <script src="{{ static_url("bootstrap/js/bootstrap.min.js") }}"></script>
         <script>
+            function getConnection() {
+                var xmlhttp;
+                if (window.XMLHttpRequest) {
+                    // code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp=new XMLHttpRequest();
+                } else {
+                    // code for IE6, IE5
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xmlhttp.open("GET","/json?instid=334",true);
+                xmlhttp.send();
+                alert(xmlhttp.responseText);
+            }
+
             var lineChartData = {
                 // x轴的标示
                 labels : ["January","February","March","April","May","June","July"],
@@ -222,6 +236,7 @@
             ];
 
             var myPie = new Chart(document.getElementById("canvasPipe").getContext("2d")).Pie(pieData);
+            getConnection();
         </script>
     {% end %}
   </body>
