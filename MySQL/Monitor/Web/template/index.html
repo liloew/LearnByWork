@@ -185,9 +185,9 @@
                     // code for IE6, IE5
                     xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
                 }
-                xmlhttp.open("GET","/json?instid=334",true);
+                xmlhttp.open("GET","/json?instid=334",false);
                 xmlhttp.send();
-                alert(xmlhttp.responseText);
+                return xmlhttp.responseText;
             }
 
             var lineChartData = {
@@ -236,7 +236,8 @@
             ];
 
             var myPie = new Chart(document.getElementById("canvasPipe").getContext("2d")).Pie(pieData);
-            getConnection();
+            var cn = getConnection();
+            alert(cn);
         </script>
     {% end %}
   </body>
