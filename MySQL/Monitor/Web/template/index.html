@@ -236,8 +236,8 @@
             ];
 
             var myPie = new Chart(document.getElementById("canvasPipe").getContext("2d")).Pie(pieData);
-            var cn = getConnection();
-            alert(cn);
+            var js = JSON.parse(getConnection())
+            alert(js.data);
         </script>
     {% end %}
   </body>
