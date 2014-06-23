@@ -33,9 +33,9 @@ class JsonHandler(BaseHandler):
     """
     """
     def get(self):
-        #instid = self.get_argument("instid")
-        SQL = "SELECT INSTANCE,CNT,CHECKTIME FROM T_CONNECTION WHERE INSTANCE=334"
-        self.db.execute(SQL)
+        instid = self.get_argument("instid")
+        SQL = "SELECT INSTANCE,CNT,CHECKTIME FROM T_CONNECTION WHERE INSTANCE={0}"
+        self.db.execute(SQL.format(instid))
         rows = self.db.fetchall()
         data = list()
         labels = list()
