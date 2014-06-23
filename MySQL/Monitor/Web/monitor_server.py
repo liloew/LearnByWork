@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import json
 import tornado
 import MySQLdb
 import os.path
@@ -28,6 +29,23 @@ class HomeHandler(BaseHandler):
     def get(self):
         self.render("index.html")
 
+class JsonHandler(BaseHandler):
+    """
+    """
+    def get(self):
+        #instid = self.get_argument("instid")
+        SQL = "SELECT INSTANCE,CNT,CHECKTIME FROM T_CONNECTION WHERE INSTANCE=334"
+        self.db.execute(SQL)
+        rows = self.db.fetchall()
+        data = list()
+        labels = list()
+        for row in rows:
+            data.append(row[1])
+            labels.append(row[2].strftime("%Y-%m-%d %H:%M:%S"))
+        json_dump = [{"labels": labels, "data": data}]
+        jsdata = json.dumps(json_dump)
+        self.write(jsdata)
+
 class Application(tornado.web.Application):
     """
     """
@@ -36,6 +54,7 @@ class Application(tornado.web.Application):
         """
         handlers = [
             (r"/", HomeHandler),
+            (r"/json", JsonHandler),
         ]
         settings = dict(
             title = "MySQL Monitor",
