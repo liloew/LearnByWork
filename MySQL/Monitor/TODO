@@ -21,3 +21,18 @@
     FROM INFORMATION_SCHEMA.EVENTS;
 8、MySQL Binlog量的监控：
     
+9、监控MySQL会话连接状况:
+    from base import DB
+
+    SQL = "SELECT ID,IP,PORT,USER,PASSWD FROM T_INSTANCE"
+    db.execute(SQL)
+    rows = db.fetchall()
+    SQL = "SELECT COUNT(*) FROM information_schema.processlist"
+    for row in rows:
+        tmpdb = DB(int_to_addr(row[1], row[2], row[3], row[4]))
+        tmpdb.execute(SQL)
+        tmprow = tmpdb.fetchone(SQL)
+        tmpdb.close()
+        db.execute("INSERT INTO T_CONNECTION(INSTANCE,CNT,) VALUES({1},{2})".format(row[0],tmprow[0]))
+        db.commit()
+10、
