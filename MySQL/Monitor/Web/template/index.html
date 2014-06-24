@@ -97,18 +97,18 @@
                             </thead>
                             <tbody>
                                 {% block tbody %}
-                                    {% for i in alerts %}
+                                    {% for inst in alerts %}
                                         <tr>
-                                            <td>{{ id }}</td>
-                                            <td>{{ receiver }}</td>
-                                            <td>{{ title }}</td>
-                                            <td>{{ abstract }}</td>
+                                            <td>{{ inst[0] }}</td>
+                                            <td>{{ inst[5] }}</td>
+                                            <td>{{ inst[2] }}</td>
+                                            <td>{{ inst[3] }}</td>
                                             <td>
-                                            {% if level == 0 }}
+                                            {% if inst[4] == 0 %}
                                                 <button type="button" class="btn btn-success btn-xs" disabled="disabled">
                                                     正常
                                                 </button>
-                                            {% else if level == 1 %}
+                                            {% elif inst[4] == 1 %}
                                                 <button type="button" class="btn btn-warning btn-xs" disabled="disabled">
                                                     警告
                                                 </button>
