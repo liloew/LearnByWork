@@ -35,4 +35,6 @@
         tmpdb.close()
         db.execute("INSERT INTO T_CONNECTION(INSTANCE,CNT,) VALUES({1},{2})".format(row[0],tmprow[0]))
         db.commit()
+    另新增的永远存储密码字段需加密存储;
+    IP_TO_INT可参考:http://www.aboutmyip.com/AboutMyXApp/IP2Integer.jsp
 10、
