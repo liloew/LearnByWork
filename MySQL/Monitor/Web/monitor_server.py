@@ -27,7 +27,10 @@ class HomeHandler(BaseHandler):
     """Web主页的Handler
     """
     def get(self):
-        self.render("index.html")
+        SQL = """SELECT ID,INSTANCE,EVENT_NAME,EVENT_BODY,LEVEL,RECEIVER FROM T_ALERT limit 10"""
+        self.db.execute(SQL)
+        rows = self.db.fetchall()
+        self.render("index.html",alerts=rows)
 
 class JsonHandler(BaseHandler):
     """
