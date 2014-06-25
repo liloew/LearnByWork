@@ -170,7 +170,7 @@
         <script src="{{ static_url("js/Chart.min.js") }}"></script>
         <script src="{{ static_url("bootstrap/js/bootstrap.min.js") }}"></script>
         <script>
-            function getConnection() {
+            function getConnection(id) {
                 var xmlhttp;
                 if (window.XMLHttpRequest) {
                     // code for IE7+, Firefox, Chrome, Opera, Safari
@@ -179,11 +179,12 @@
                     // code for IE6, IE5
                     xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
                 }
-                xmlhttp.open("GET","/json?instid=334",false);
+                var strURL = "/json?instid="
+                xmlhttp.open("GET",strURL.concat(id),false);
                 xmlhttp.send();
                 return xmlhttp.responseText;
             }
-            var js = JSON.parse(getConnection())
+            var js = JSON.parse(getConnection(1))
 
             var lineChartData = {
                 // x轴的标示
@@ -204,6 +205,7 @@
                     // 与x轴标示对应的数据
                     data : js.data
                     },
+                    /**************************************
                     {
                     fillColor : "rgba(151,187,205,0)",
                     strokeColor : "rgba(151,187,205,1)",
@@ -211,6 +213,7 @@
                     pointStrokeColor : "#fff",
                     data : [28,48,40,19,36,27]
                     }
+                    **************************************/
                 ]
             }
             var myLine = new Chart(document.getElementById("canvasLine").getContext("2d")).Line(lineChartData);
