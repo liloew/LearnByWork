@@ -3,6 +3,8 @@
 import base64
 import MySQLdb
 
+from Crypto.Cipher import AES
+
 class DB(object):
     """封装MySQL连接
     """
