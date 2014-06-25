@@ -29,8 +29,11 @@ class HomeHandler(BaseHandler):
     def get(self):
         SQL = """SELECT ID,INSTANCE,EVENT_NAME,EVENT_BODY,LEVEL,RECEIVER FROM T_ALERT limit 10"""
         self.db.execute(SQL)
-        rows = self.db.fetchall()
-        self.render("index.html",alerts=rows)
+        alertrows = self.db.fetchall()
+        SQL = """SELECT ID FROM T_INSTANCE"""
+        self.db.execute(SQL)
+        instrows = self.db.fetchall()
+        self.render("index.html",alerts=alertrows,instance=instrows)
 
 class JsonHandler(BaseHandler):
     """
