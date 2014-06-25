@@ -33,7 +33,17 @@ class HomeHandler(BaseHandler):
         SQL = """SELECT ID FROM T_INSTANCE"""
         self.db.execute(SQL)
         instrows = self.db.fetchall()
-        self.render("index.html",alerts=alertrows,instance=instrows)
+        self.db.execute("SELECT ID,STATE FROM T_INSTANCE")
+        piperows = self.db.fetchall()
+        i = 0
+        listpipe = list()
+        for row in piperows:
+            listpipe.append(list(row))
+        for ls in listpipe:
+            ls.append(i)
+            i += 1
+        print listpipe
+        self.render("index.html",alerts=alertrows,instance=instrows,pipe=listpipe)
 
 class JsonHandler(BaseHandler):
     """
@@ -51,6 +61,12 @@ class JsonHandler(BaseHandler):
         json_dump = {"labels": labels, "data": data}
         jsdata = json.dumps(json_dump)
         self.write(jsdata)
+
+class PipeHandler(BaseHandler):
+    """
+    """
+    def get(self):
+        pass
 
 class Application(tornado.web.Application):
     """
