@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import base64
 import MySQLdb
 
 class DB(object):
@@ -69,3 +70,32 @@ class DB(object):
         """
         """
         self.conn.close()
+
+class Encrypt(object):
+    """AES加密解密类
+    """
+    def __init__(self):
+        # You may get it by os.urandom(), but it must be constant
+        self.key = "MySQL Monitor v1"
+        # BLOCK_SIZE must be 16, 24 or 32, here is len(self.key)
+        self.BLOCK_SIZE = 16
+        self.cipher = AES.new(self.key)
+        self.PADDING = '{'
+    def pad(self,str):
+        """padding the str to 16X for AES encrypt
+        """
+        if not str:
+            return
+        return str + (self.BLOCK_SIZE - len(str) % self.BLOCK_SIZE) * self.PADDING
+    def encrypt(self,passwd):
+        """Encrypt the 16 bytes passwd
+        """
+        if not passwd:
+            return
+        return base64.b64encode(self.cipher.encrypt(self.pad(passwd)))
+    def decrypt(self,passwd):
+        """Decrypt the encryption passwd to original
+        """
+        if not passwd:
+            return
+        return self.cipher.decrypt(base64.b64decode(passwd)).rstrip(self.PADDING)
