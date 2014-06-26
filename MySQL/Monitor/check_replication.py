@@ -23,13 +23,18 @@ def main(host,port,user,passwd="",db="",charset="utf8"):
         "SECONDS_BEHIND_MASTER","MASTER_SSL_VERIFY_SERVER_CERT","LAST_IO_ERRNO","LAST_IO_ERROR",
         "LAST_SQL_ERRNO","LAST_SQL_ERROR","REPLICATE_IGNORE_SERVER_IDS","MASTER_SERVER_ID")
     ,row))
-    # Here must be an insert if any SQL_THREAD,IO_THREAD or delay
     return replicat_status
 
 if __name__ == "__main__":
+    # 建议读取外部配置文件以获取监控服务器配置
     mon_db = DB("localhost",3306,"root","123456","monitor")
     en = Encrypt()
     mon_db.execute("SELECT ID,INET_NTOA(IP),PORT,USER,PASSWD FROM T_INSTANCE WHERE INSTTYPE='SLAVE'")
     rows = mon_db.fetchall()
     for row in rows:
-        print main(row[1],row[2],row[3],en.decrypt(row[4]))
+        replicat_status = main(row[1],row[2],row[3],en.decrypt(row[4]))
+        if replicat_status:
+            mon_db.execute("""INSERT INTO T_REPLICAT(INSTANCE,IOTHREAD,SQLDELAY,IODELAY,SQLDELAY)
+                VALUES('%s','%s',%s,%s)""".format(row[0],replicat_status.get('SLAVE_IO_RUNNING'),
+                replicat_status.get('SLAVE_SQL_RUNNING')))
+    mon_db.commit()
