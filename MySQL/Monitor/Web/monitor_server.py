@@ -42,7 +42,6 @@ class HomeHandler(BaseHandler):
         for ls in listpipe:
             ls.append(i)
             i += 1
-        print listpipe
         self.render("index.html",alerts=alertrows,instance=instrows,pipe=listpipe)
 
 class JsonHandler(BaseHandler):
@@ -50,7 +49,9 @@ class JsonHandler(BaseHandler):
     """
     def get(self):
         instid = self.get_argument("instid")
-        SQL = "SELECT INSTANCE,CNT,CHECKTIME FROM T_CONNECTION WHERE INSTANCE={0}"
+        SQL = """SELECT * FROM (
+            SELECT INSTANCE,CNT,CHECKTIME FROM T_CONNECTION WHERE INSTANCE={0} ORDER BY CHECKTIME DESC LIMIT 20) G
+            ORDER BY G.CHECKTIME ASC"""
         self.db.execute(SQL.format(instid))
         rows = self.db.fetchall()
         data = list()
