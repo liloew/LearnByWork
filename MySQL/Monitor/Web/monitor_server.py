@@ -52,13 +52,21 @@ class JsonHandler(BaseHandler):
         SQL = """SELECT * FROM (
             SELECT INSTANCE,CNT,CHECKTIME FROM T_CONNECTION WHERE INSTANCE={0} ORDER BY CHECKTIME DESC LIMIT 20) G
             ORDER BY G.CHECKTIME ASC"""
+        SQL = """SELECT * FROM (
+            SELECT INSTANCE,SUM(CNT),DATE_FORMAT(CHECKTIME,'%Y-%m-%d %H:%i') AS DATEFORMAT
+            FROM T_CONNECTION
+            WHERE INSTANCE={0}
+            GROUP BY INSTANCE,DATEFORMAT
+            ORDER BY DATEFORMAT DESC
+            LIMIT 30) G
+            ORDER BY G.DATEFORMAT ASC"""
         self.db.execute(SQL.format(instid))
         rows = self.db.fetchall()
         data = list()
         labels = list()
         for row in rows:
-            data.append(row[1])
-            labels.append(row[2].strftime("%Y-%m-%d %H:%M:%S"))
+            data.append(int(row[1]))
+            labels.append(row[2])
         json_dump = {"labels": labels, "data": data}
         jsdata = json.dumps(json_dump)
         self.write(jsdata)
