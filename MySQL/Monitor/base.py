@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import base64
 import MySQLdb
+import smtplib
 
+from email.mime.text import MIMEText
+from email.header import Header
 from Crypto.Cipher import AES
 
 class DB(object):
@@ -101,3 +104,20 @@ class Encrypt(object):
         if not passwd:
             return
         return self.cipher.decrypt(base64.b64decode(passwd)).rstrip(self.PADDING)
+
+def send_mail(msg=None):
+    """
+    """
+    # should mail me
+    if not msg:
+        msg = "There was no message."
+    msg_body = msg
+    smtp = smtplib.SMTP()
+    smtp.connect('smtp.126.com')
+    smtp.login('from@126.com','password')
+    msg = MIMEText(msg_body)
+    msg['Subject'] = Header('MySQL告警', 'utf-8')
+    msg['From'] = 'from@126.com'
+    msg['To'] = 'to@wo.cn'
+    msg['date'] = time.strftime('%Y-%m-%d %H:%M:%S %A')
+    smtp.sendmail('from@126.com','to@wo.cn',msg.as_string())
