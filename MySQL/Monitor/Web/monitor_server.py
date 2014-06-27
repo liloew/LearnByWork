@@ -33,7 +33,7 @@ class HomeHandler(BaseHandler):
         SQL = """SELECT ID FROM T_INSTANCE"""
         self.db.execute(SQL)
         instrows = self.db.fetchall()
-        self.db.execute("SELECT ID,STATE FROM T_INSTANCE")
+        self.db.execute("SELECT COUNT(*),INSTTYPE FROM T_INSTANCE GROUP BY INSTTYPE")
         piperows = self.db.fetchall()
         i = 0
         listpipe = list()
