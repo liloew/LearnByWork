@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from time import sleep
 from base import DB, Encrypt
 
-def main(host,port,user,passwd="",db="",charset="utf8"):
+def check(host,port,user,passwd="",db="",charset="utf8"):
     """
     """
     db = DB(host,port,user,passwd,db,charset)
@@ -25,16 +26,21 @@ def main(host,port,user,passwd="",db="",charset="utf8"):
     ,row))
     return replicat_status
 
-if __name__ == "__main__":
+def main():
     # 建议读取外部配置文件以获取监控服务器配置
     mon_db = DB("localhost",3306,"root","123456","monitor")
     en = Encrypt()
     mon_db.execute("SELECT ID,INET_NTOA(IP),PORT,USER,PASSWD FROM T_INSTANCE WHERE INSTTYPE='SLAVE'")
     rows = mon_db.fetchall()
     for row in rows:
-        replicat_status = main(row[1],row[2],row[3],en.decrypt(row[4]))
+        replicat_status = check(row[1],row[2],row[3],en.decrypt(row[4]))
         if replicat_status:
             mon_db.execute("""INSERT INTO T_REPLICAT(INSTANCE,IOTHREAD,SQLTHREAD,BEHIND)
                 VALUES('{0}','{1}','{2}',{3})""".format(row[0],replicat_status.get('SLAVE_IO_RUNNING'),
                 replicat_status.get('SLAVE_SQL_RUNNING'),replicat_status.get('SECONDS_BEHIND_MASTER')))
     mon_db.commit()
+
+if __name__ == "__main__":
+    while True:
+        main()
+        sleep(30)
