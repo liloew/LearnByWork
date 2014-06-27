@@ -48,16 +48,19 @@ class ReplicateHandler(BaseHandler):
     """
     """
     def get(self):
-        SQL = "SELECT ID,INSTTYPE,IP,PORT,USER,PASSWD FROM T_INSTANCE"
+        SQL = "SELECT ID,INSTTYPE,IP,PORT,USER,PASSWD FROM T_INSTANCE WHERE INSTTYPE='SLAVE'"
         self.db.execute(SQL)
         rows = self.db.fetchall()
-        self.render("replication.html", instances=rows)
+        if len(rows) == 0:
+            self.write("No slave")
+            return
+        self.render("replication.html", firstslave=rows[0], slaveinstances=rows)
 
 class JsonHandler(BaseHandler):
     """
     """
     def get(self):
-        instid = self.get_argument("instid")
+        instid = self.get_argument("instid", default=None)
         if instid:
             SQL = """SELECT * FROM (
                 SELECT INSTANCE,SUM(CNT),DATE_FORMAT(CHECKTIME,'%Y-%m-%d %H:%i') AS DATEFORMAT
@@ -78,21 +81,20 @@ class JsonHandler(BaseHandler):
             jsdata = json.dumps(json_dump)
             self.write(jsdata)
             return
-        slaveinstid = self.get_argument("slaveinstid")
+        slaveinstid = self.get_argument("slaveinstid", default=None)
         if slaveinstid:
             SQL = """SELECT * FROM 
-                (SELECT ID,INSTANCE,SQLTHREAD,IOTHREAD,SQLDELAY,IODELAY FROM T_REPLICAT ORDER BY ID DESC LIMIT 30) G
+                (SELECT ID,INSTANCE,SQLTHREAD,IOTHREAD,BEHIND,CHECKTIME FROM T_REPLICAT WHERE INSTANCE={0} ORDER BY ID DESC LIMIT 30) G
                 ORDER BY ID ASC"""
-            self.db.execute(SQL.format(instid))
+            self.db.execute(SQL.format(slaveinstid))
             rows = self.db.fetchall()
             data = list()
             labels = list()
             for row in rows:
-                data.append(int(row[1]))
-                labels.append(row[2])
+                data.append(int(row[4]))
+                labels.append(row[5].strftime('%Y-%m-%d %H:%M:%S'))
             json_dump = {"labels": labels, "data": data}
             jsdata = json.dumps(json_dump)
-            self.write(jsdata)
             self.write(jsdata)
 
 class PipeHandler(BaseHandler):

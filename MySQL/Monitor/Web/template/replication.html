@@ -51,15 +51,15 @@
             xmlhttp.send();
             return xmlhttp.responseText;
         }
-        var js = JSON.parse(getConnection(1))
-        {% for inst in instance %}
+        var js = JSON.parse(getConnection(6));
+        {% for inst in slaveinstances %}
             var js{{ inst[0] }} = JSON.parse(getConnection({{ inst[0] }}));
         {% end %}
 
         var lineChartData = {
             labels : js.labels,
             datasets : [
-                {% for inst in instance %}
+                {% for inst in slaveinstances %}
                     {
                     fillColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 0.5)",
                     strokeColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 1)",
@@ -71,6 +71,6 @@
             ]
         }
 
-        var myLine = new Chart(document.getElementById("canvasLine").getContext("2d")).Line(lineChartData);
+        var myLine = new Chart(document.getElementById("canvasLineSQL").getContext("2d")).Line(lineChartData);
     </script>
 {% end %}
