@@ -77,6 +77,7 @@ class JsonHandler(BaseHandler):
             json_dump = {"labels": labels, "data": data}
             jsdata = json.dumps(json_dump)
             self.write(jsdata)
+            return
         slaveinstid = self.get_argument("slaveinstid")
         if slaveinstid:
             SQL = """SELECT * FROM 
