@@ -34,7 +34,7 @@ if __name__ == "__main__":
     for row in rows:
         replicat_status = main(row[1],row[2],row[3],en.decrypt(row[4]))
         if replicat_status:
-            mon_db.execute("""INSERT INTO T_REPLICAT(INSTANCE,IOTHREAD,SQLDELAY,IODELAY,SQLDELAY)
-                VALUES('%s','%s',%s,%s)""".format(row[0],replicat_status.get('SLAVE_IO_RUNNING'),
-                replicat_status.get('SLAVE_SQL_RUNNING')))
+            mon_db.execute("""INSERT INTO T_REPLICAT(INSTANCE,IOTHREAD,SQLTHREAD,BEHIND)
+                VALUES('{0}','{1}','{2}',{3})""".format(row[0],replicat_status.get('SLAVE_IO_RUNNING'),
+                replicat_status.get('SLAVE_SQL_RUNNING'),replicat_status.get('SECONDS_BEHIND_MASTER')))
     mon_db.commit()
