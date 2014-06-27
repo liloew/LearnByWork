@@ -230,8 +230,8 @@
             var pieData = [
                 {% for st in pipe %}
                     {
-                        value: 1,
-                        color:"#{{ format(14738636 + 220964*st[2], '02x') }}"
+                        value: {{ st[0] }},
+                        color:"#{{ format(14738636 + 180964*st[0], '02x') }}"
                     },
                 {% end %}
             ];
