@@ -1,0 +1,76 @@
+{% extends "index.html" %}
+
+{% block navbar %}
+    <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li class="active"><a href="#">复制监控</a></li>
+            <li><a href="#contact">慢查询监控</a></li>
+            <li><a href="#engine">Engine Status监控</a></li>
+        </ul>
+    </div><!--/.nav-collapse -->
+{% end %}
+
+{% block alert %}
+{% end %}
+
+{% block tbody %}
+{% end %}
+
+{% block instancepipe %}
+{% end %}
+
+{% block connection %}
+    <div class="col-md-6">
+        <strong>IO Thread Delay</strong>
+        <canvas id="canvasLineIO" height="450" width="600"></canvas>
+    </div>
+
+    <div class="col-md-6">
+        <strong>SQL Thread Delay</strong>
+        <canvas id="canvasLineSQL" height="450" width="600"></canvas>
+    </div>
+{% end %}
+
+{% block topsql %}
+{% end %}
+
+{% block tailjs %}
+    <script>
+        function getConnection(id) {
+            var xmlhttp;
+            if (window.XMLHttpRequest) {
+                // code for IE7+, Firefox, Chrome, Opera, Safari
+                xmlhttp=new XMLHttpRequest();
+            } else {
+                // code for IE6, IE5
+                xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            var strURL = "/json?qpsid="
+            xmlhttp.open("GET",strURL.concat(id),false);
+            xmlhttp.send();
+            return xmlhttp.responseText;
+        }
+        var js = JSON.parse(getConnection(1));
+        {% for inst in qpstuple %}
+            var js{{ inst[0] }} = JSON.parse(getConnection({{ inst[0] }}));
+        {% end %}
+
+        var lineChartData = {
+            labels : js.labels,
+            datasets : [
+                {% for inst in qpstuple %}
+                    {
+                    fillColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 0.5)",
+                    strokeColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 1)",
+                    pointColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 1)",
+                    pointStrokeColor : "#fff",
+                    data : js{{ inst[0] }}.data
+                    },
+                {% end %}
+            ]
+        }
+
+        var myLine = new Chart(document.getElementById("canvasLineSQL").getContext("2d")).Line(lineChartData);
+    </script>
+{% end %}

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import division
+
 import json
 import tornado
 import MySQLdb
@@ -10,6 +12,7 @@ import tornado.options
 import tornado.httpserver
 
 from tornado.options import define, options
+from collections import defaultdict
 from base import DB
 
 
@@ -22,6 +25,9 @@ class BaseHandler(tornado.web.RequestHandler):
         """初始化数据库
         """
         self.db = DB("localhost",3306,"root","123456","monitor")
+        SQL = "SELECT ID,IP,PORT,USER,PASSWD FROM T_INSTANCE"
+        self.db.execute(SQL)
+        self.rows = self.db.fetchall()
 
 class HomeHandler(BaseHandler):
     """Web主页的Handler
@@ -56,11 +62,23 @@ class ReplicateHandler(BaseHandler):
             return
         self.render("replication.html", firstslave=rows[0], slaveinstances=rows)
 
+class QpsHandler(BaseHandler):
+    """
+    """
+    def get(self):
+        SQL = "SELECT ID FROM T_INSTANCE ORDER BY ID"
+        self.db.execute(SQL)
+        rows = self.db.fetchall()
+
+        self.render("queriesper.html", firstinst=rows[0][0], qpstuple=rows)
+
 class JsonHandler(BaseHandler):
     """
     """
     def get(self):
         instid = self.get_argument("instid", default=None)
+        data = list()
+        labels = list()
         if instid:
             SQL = """SELECT * FROM (
                 SELECT INSTANCE,SUM(CNT),DATE_FORMAT(CHECKTIME,'%Y-%m-%d %H:%i') AS DATEFORMAT
@@ -72,8 +90,6 @@ class JsonHandler(BaseHandler):
                 ORDER BY G.DATEFORMAT ASC"""
             self.db.execute(SQL.format(instid))
             rows = self.db.fetchall()
-            data = list()
-            labels = list()
             for row in rows:
                 data.append(int(row[1]))
                 labels.append(row[2])
@@ -88,14 +104,31 @@ class JsonHandler(BaseHandler):
                 ORDER BY ID ASC"""
             self.db.execute(SQL.format(slaveinstid))
             rows = self.db.fetchall()
-            data = list()
-            labels = list()
             for row in rows:
                 data.append(int(row[4]))
                 labels.append(row[5].strftime('%Y-%m-%d %H:%M:%S'))
             json_dump = {"labels": labels, "data": data}
             jsdata = json.dumps(json_dump)
             self.write(jsdata)
+            return
+        qpsid = self.get_argument("qpsid", default=None)
+        if qpsid:
+            SQL = """SELECT *
+                FROM (SELECT UPTIME,DIFFUPTIME,DIFFQUESTIONS
+                FROM T_QPS
+                WHERE INSTID = {0}
+                ORDER BY UPTIME DESC
+                LIMIT 40) TMP
+                ORDER BY TMP.UPTIME ASC"""
+            self.db.execute(SQL.format(qpsid))
+            qps = self.db.fetchall()
+            for x in qps:
+                data.append(x[2]/x[1])
+                labels.append(x[0])
+            json_dump = {'labels': labels, 'data': data}
+            jsdata = json.dumps(json_dump)
+            self.write(jsdata)
+            return
 
 class PipeHandler(BaseHandler):
     """
@@ -113,6 +146,7 @@ class Application(tornado.web.Application):
             (r"/", HomeHandler),
             (r"/json", JsonHandler),
             (r"/replicate", ReplicateHandler),
+            (r"/qps", QpsHandler),
         ]
         settings = dict(
             title = "MySQL Monitor",
