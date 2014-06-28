@@ -37,4 +37,4 @@
         db.commit()
     另新增的永远存储密码字段需加密存储;
     IP_TO_INT可参考:http://www.aboutmyip.com/AboutMyXApp/IP2Integer.jsp
-10、
+10、建议在实例运行情况饼图中显示监控的主从库比例和各实例运行时常
