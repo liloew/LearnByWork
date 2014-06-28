@@ -62,9 +62,9 @@
             datasets : [
                 {% for inst in qpstuple %}
                     {
-                    fillColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 0.5)",
+                    fillColor : "rgba({{ 64*inst[0] }}, {{ 32*inst[0] }}, {{ 100*inst[0] }}, 0.5)",
                     strokeColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 1)",
-                    pointColor : "rgba({{ 32*inst[0] }}, {{ 32*inst[0] }}, {{ 32*inst[0] }}, 1)",
+                    pointColor : "rgba({{ 32*inst[0] }}, {{ 100*inst[0] }}, {{ 282*inst[0] }}, 1)",
                     pointStrokeColor : "#fff",
                     data : js{{ inst[0] }}.data
                     },
