@@ -3,6 +3,7 @@
 import base64
 import MySQLdb
 import smtplib
+import MySQLdb.cursors
 
 from email.mime.text import MIMEText
 from email.header import Header
@@ -11,7 +12,7 @@ from Crypto.Cipher import AES
 class DB(object):
     """封装MySQL连接
     """
-    def __init__(self,host,port,user,passwd,db="",charset="utf8"):
+    def __init__(self,host,port,user,passwd,db="",charset="utf8",cursorclass=None):
         """
         """
         self.host    = host
@@ -22,6 +23,8 @@ class DB(object):
         self.cur     = None
         self.conn    = None
         self.charset = charset
+        self.cursorclass = MySQLdb.cursors.Cursor if cursorclass == None \
+            else MySQLdb.cursors.DictCursor
         try:
             self.conn = MySQLdb.connect(
                 host    = self.host,
@@ -29,7 +32,8 @@ class DB(object):
                 user    = self.user,
                 passwd  = self.passwd,
                 db      = self.db,
-                charset = self.charset
+                charset = self.charset,
+                cursorclass = self.cursorclass
             )
         except MySQLdb.Error as e:
             print "Errors in DB.__init__:%s" % e
@@ -49,7 +53,8 @@ class DB(object):
                 self.user,
                 self.passwd,
                 self.db,
-                self.charset
+                self.charset,
+                cursorclass = self.cursorclass
             )
             self.cur = self.conn.cursor()
             return self.cur.execute(SQL)
