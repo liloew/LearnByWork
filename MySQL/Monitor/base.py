@@ -58,7 +58,7 @@ class DB(object):
             )
             self.cur = self.conn.cursor()
             return self.cur.execute(SQL)
-    def execute(self,SQL=None,rowlist=""):
+    def executemany(self,SQL=None,rowlist=""):
         """
         """
         if not SQL:
