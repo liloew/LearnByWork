@@ -36,6 +36,9 @@ class HomeHandler(BaseHandler):
         SQL = """SELECT ID,INSTANCE,EVENT_NAME,EVENT_BODY,LEVEL,RECEIVER FROM T_ALERT limit 10"""
         self.db.execute(SQL)
         alertrows = self.db.fetchall()
+        SQL = """SELECT ID,CNT,SQLHASH FROM T_SLOW ORDER BY ID DESC LIMIT 10"""
+        self.db.execute(SQL)
+        slowsqls = self.db.fetchall()
         SQL = """SELECT ID FROM T_INSTANCE"""
         self.db.execute(SQL)
         instrows = self.db.fetchall()
@@ -48,7 +51,7 @@ class HomeHandler(BaseHandler):
         for ls in listpipe:
             ls.append(i)
             i += 1
-        self.render("index.html",alerts=alertrows,instance=instrows,pipe=listpipe)
+        self.render("index.html",alerts=alertrows,instance=instrows,pipe=listpipe,slowsqls=slowsqls)
 
 class ReplicateHandler(BaseHandler):
     """

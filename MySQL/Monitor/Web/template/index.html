@@ -50,7 +50,7 @@
                 <li class="active"><a href="#">Home</a></li>
                 <li><a href="/replicate">复制监控</a></li>
                 <li><a href="/qps">QPS监控</a></li>
-                <li><a href="#contact">慢查询监控</a></li>
+                <li><a href="/slow">慢查询监控</a></li>
                 <li><a href="#engine">Engine Status监控</a></li>
               </ul>
             </div><!--/.nav-collapse -->
@@ -138,21 +138,13 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for slowsql in slowsqls %}
                                 <tr>
-                                    <td>1</td>
-                                    <td>334</td>
-                                    <td><a href="">d9cd815b2265764c3543f10fa</a></td>
+                                    <td>{{ slowsql[0] }}</td>
+                                    <td>{{ slowsql[1] }} </td>
+                                    <td><a href="">{{ slowsql[2] }}</a><td>
                                 </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>351</td>
-                                    <td><a href="">72be0aa10eb2267628dce322b</a><td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>105</td>
-                                    <td><a href="">ab08c7f10ebd68dceba02aba3</a></td>
-                                </tr>
+                                {% end %}
                             </tbody>
                         </table>
                     {% end %}
