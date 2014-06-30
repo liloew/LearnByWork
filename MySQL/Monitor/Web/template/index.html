@@ -142,7 +142,7 @@
                                 <tr>
                                     <td>{{ slowsql[0] }}</td>
                                     <td>{{ slowsql[1] }} </td>
-                                    <td><a href="">{{ slowsql[2] }}</a><td>
+                                    <td><a href="/slow/?sqlhash={{ slowsql[2] }}">{{ slowsql[2] }}</a><td>
                                 </tr>
                                 {% end %}
                             </tbody>
