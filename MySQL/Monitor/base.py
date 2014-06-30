@@ -58,6 +58,27 @@ class DB(object):
             )
             self.cur = self.conn.cursor()
             return self.cur.execute(SQL)
+    def execute(self,SQL=None,rowlist=""):
+        """
+        """
+        if not SQL:
+            print "You must give at least one SQL."
+        self.cur = self.conn.cursor()
+        try:
+            return self.cur.execute(SQL,rowlist)
+        except MySQLdb.OperationalError as e:
+            print "{0}\t{1},connect again\n".format(e[0], e[1])
+            self.__init__(
+                self.host,
+                self.port,
+                self.user,
+                self.passwd,
+                self.db,
+                self.charset,
+                cursorclass = self.cursorclass
+            )
+            self.cur = self.conn.cursor()
+            return self.cur.execute(SQL,rowlist)
     def fetchall(self):
         """
         """
@@ -71,7 +92,7 @@ class DB(object):
     def commit(self):
         """
         """
-        self.conn.commit()
+        return self.conn.commit()
     def rollback(self):
         """
         """
