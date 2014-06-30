@@ -85,9 +85,10 @@ def server(db_file='/tmp/mysqlslow-sqlite3.db'):
                 lastrow = '\n'.join((tmprow,lastrow))
             client.send(lastrow)
         elif data[0:6] == "UP ID:":
-            cur.execute("UPDATE T_SLOW SET STATE=1 WHERE ID=?", (data.split(':')[1][:-2],))
+            print "UPDATE T_SLOW SET STATE=1 WHERE ID={0}".format(data.split(':')[1])
+            cur.execute("UPDATE T_SLOW SET STATE=1 WHERE ID=?", (data.split(':')[1],))
             conn.commit()
-            client.send("ID:" + data.split(':')[1][:-2] + "has been executed.")
+            client.send("ID: " + data.split(':')[1] + " has been executed.")
         client.close()
         conn.close()
     if int(time.strftime('%d')) % 10 == 0 and time.strftime('%H:%M') == '02:00':
