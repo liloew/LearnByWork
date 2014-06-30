@@ -21,6 +21,8 @@ def init(db_file='/tmp/mysqlslow-sqlite3.db'):
         SQLHASH TEXT, -- COMMENT 'SQL的SHA1键值'
         STATE INTEGER DEFAULT 0 -- COMMENT '是否已失效'
     )""")
+    conn.commit()
+    conn.close()
 
 def insert_row(db_file='/tmp/mysqlslow-sqlite3.db',slow_file='/tmp/master-slow.log.dump'):
     conn = sqlite3.connect(db_file)
@@ -38,8 +40,11 @@ def insert_row(db_file='/tmp/mysqlslow-sqlite3.db',slow_file='/tmp/master-slow.l
                 record.append(usr)
                 record.append(sql.strip())
                 record.append(hashlib.sha1(sql.strip()).hexdigest())
+                conn = sqlite3.connect(db_file)
+                cur  = conn.cursor()
                 cur.execute(SQL, record)
                 conn.commit()
+                conn.close()
                 sql = ""
                 record = []
             elif line[0:5] == 'Count':
@@ -58,8 +63,6 @@ def delete(db_file='/tmp/mysqlslow-sqlite3.db'):
     conn.close()
 
 def server(db_file='/tmp/mysqlslow-sqlite3.db'):
-    conn = sqlite3.connect(db_file)
-    cur  = conn.cursor()
     host = ''
     port = 7000
     backlog = 5
@@ -70,15 +73,23 @@ def server(db_file='/tmp/mysqlslow-sqlite3.db'):
     while 1:
         client, address = s.accept()
         data = client.recv(size)
+        conn = sqlite3.connect(db_file)
+        cur  = conn.cursor()
+        tmprow = ''
+        lastrow = ''
         if data[0:12]  == "GET LaSt SQL":
             cur.execute("SELECT * FROM T_SLOW WHERE STATE = 0")
             rows = cur.fetchall()
             for row in rows:
-                print row
+                tmprow = '\t'.join(str(w) for w in row)
+                lastrow = '\n'.join((tmprow,lastrow))
+            client.send(lastrow)
         elif data[0:6] == "UP ID:":
             cur.execute("UPDATE T_SLOW SET STATE=1 WHERE ID=?", (data.split(':')[1][:-2],))
             conn.commit()
+            client.send("ID:" + data.split(':')[1][:-2] + "has been executed.")
         client.close()
+        conn.close()
     if int(time.strftime('%d')) % 10 == 0 and time.strftime('%H:%M') == '02:00':
         delete()
 
