@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from time import sleep
-from base import DB, Encrypt
+from base import DB, Encrypt, parser_config
 
 def main():
     en = Encrypt()
-    db = DB("localhost",3306,"root","123456","monitor")
+    cg = parser_config()
+    db = DB(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
     SQL = "SELECT ID,INET_NTOA(IP),PORT,USER,PASSWD FROM T_INSTANCE"
     db.execute(SQL)
     rows = db.fetchall()
