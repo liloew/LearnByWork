@@ -8,6 +8,7 @@ import MySQLdb.cursors
 from email.mime.text import MIMEText
 from email.header import Header
 from Crypto.Cipher import AES
+from ConfigParser import SafeConfigParser
 
 class DB(object):
     """封装MySQL连接
@@ -147,3 +148,19 @@ def send_mail(msg=None):
     msg['To'] = 'to@wo.cn'
     msg['date'] = time.strftime('%Y-%m-%d %H:%M:%S %A')
     smtp.sendmail('from@126.com','to@wo.cn',msg.as_string())
+
+def parser_config(config_file="monitor.conf"):
+    """
+    """
+    parser = SafeConfigParser()
+    parser.read(config_file)
+    user = parser.get("Server", "user")
+    passwd = parser.get("Server", "passwd")
+    host = parser.get("Server", "host")
+    port = parser.get("Server", "port")
+    return {
+        "user": user,
+        "passwd": passwd,
+        "host": host,
+        "port": port
+    }
