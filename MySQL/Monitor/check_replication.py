@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from time import sleep
-from base import DB, Encrypt
+from base import DB, Encrypt, parser_config
 
 def check(host,port,user,passwd="",db="",charset="utf8"):
     """
@@ -28,8 +28,9 @@ def check(host,port,user,passwd="",db="",charset="utf8"):
 
 def main():
     # 建议读取外部配置文件以获取监控服务器配置
-    mon_db = DB("localhost",3306,"root","123456","monitor")
+    cg = parser_config()
     en = Encrypt()
+    mon_db = DB(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
     mon_db.execute("SELECT ID,INET_NTOA(IP),PORT,USER,PASSWD FROM T_INSTANCE WHERE INSTTYPE='SLAVE'")
     rows = mon_db.fetchall()
     for row in rows:

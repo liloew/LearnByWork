@@ -4,15 +4,16 @@
 import socket
 import MySQLdb
 
-from base import DB, Encrypt
+from base import DB, Encrypt, parser_config
 
 
 def check_slowsql():
     host = 'localhost'
     port = 7000
     size = 1024
-    # 本地监控数据库,建议由配置文件中读取
-    db = DB("localhost",3306,"root","123456","monitor")
+    cg = parser_config()
+    en = Encrypt()
+    db = DB(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
     db.execute("SELECT ID,INET_NTOA(IP) FROM T_INSTANCE ORDER BY ID DESC")
     instrows = db.fetchall()
     for inst in instrows:
