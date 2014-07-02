@@ -24,13 +24,36 @@
 {% block connection %}
     <div class="col-md-8">
         <p><strong>SLOW SQL</strong></p>
-        <p><strong>实例名:</strong>{{ sqlhash[0] }}</p>
-        <p><strong>IP地址:</strong>{{ sqlhash[1] }}</p>
-        <p><strong>执行次数:</strong>{{ sqlhash[2] }}</p>
-        <p><strong>耗时:</strong>{{ sqlhash[3] }}</p>
-        <p><strong>返回记录:</strong>{{ sqlhash[4] }}</p>
-        <p><strong>SQL:</strong>{{ sqlhash[5] }}</p>
-        <p><strong>检测时间:</strong>{{ sqlhash[6] }}</p>
+        <table class="table table-hover">
+            <tr>
+                <th><strong>实例名:</strong></th>
+                <td>{{ sqlhash[0] }}</td>
+            </tr>
+            <tr>
+                <th><strong>IP地址:</strong></th>
+                <td>{{ sqlhash[1] }}</td>
+            </tr>
+            <tr>
+                <th><strong>执行次数:</strong></th>
+                <td>{{ sqlhash[2] }}</td>
+            </tr>
+            <tr>
+                <th><strong>耗时:</strong></th>
+                <td>{{ sqlhash[3] }}</td>
+            </tr>
+            <tr>
+                <th><strong>返回记录:</strong></th>
+                <td>{{ sqlhash[4] }}</td>
+            </tr>
+            <tr>
+                <th><strong>SQL:</strong></th>
+                <td>{{ sqlhash[5] }}</td>
+            </tr>
+            <tr>
+                <th><strong>检测时间:</strong></th>
+                <td>{{ sqlhash[6] }}</td>
+            </tr>
+        </table>
     </div>
 {% end %}
 
