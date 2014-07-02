@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from base import DB, Encrypt
+from base import DB, Encrypt, parser_config
 from time import sleep
 
 def check_qps(host,port,user,passwd,db="",charset="utf8"):
@@ -31,11 +31,12 @@ def check_qps(host,port,user,passwd,db="",charset="utf8"):
         db.commit()
 
 def main():
-    # 建议读取外部配置文件
-    check_qps("localhost",3306,"root","123456","monitor")
+    cg = parser_config()
+    en = Encrypt()
+    check_qps(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
 
 
 if __name__ == "__main__":
     while True:
         main()
-        sleep(10)
+        sleep(30)
