@@ -158,9 +158,11 @@ def parser_config(config_file="monitor.conf"):
     passwd = parser.get("Server", "passwd")
     host = parser.get("Server", "host")
     port = parser.get("Server", "port")
+    db   = parser.get("Server", "db")
     return {
         "user": user,
         "passwd": passwd,
         "host": host,
-        "port": port
+        "port": port,
+        "db": db
     }
