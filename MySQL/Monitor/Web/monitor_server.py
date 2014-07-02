@@ -80,14 +80,13 @@ class SQLHandler(BaseHandler):
     """
     def get(self):
         sqlhash = self.get_argument("sqlhash")
-        SQL = """SELECT NAME,INET_NTOA(IP),CNT,TIME,ROS,SLOWSQL,CHKTIME
+        SQL = """SELECT NAME,INET_NTOA(IP),CNT,TIME,ROS,SLOWSQL,CHKTIME,T_SLOW.STATE
             FROM T_SLOW
             INNER JOIN T_INSTANCE
             ON INSTID = T_INSTANCE.ID
             WHERE SQLHASH = '{0}'"""
         self.db.execute(SQL.format(sqlhash))
         row = self.db.fetchone()
-        print row[5]
         self.render("slow.html", sqlhash=row)
 
 class JsonHandler(BaseHandler):
