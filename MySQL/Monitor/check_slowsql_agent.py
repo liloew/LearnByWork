@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+import time
 import socket
 import sqlite3
 import string
-import time
 import hashlib
 import os.path
+import subprocess
 
 def init(db_file='/tmp/mysqlslow-sqlite3.db'):
     conn = sqlite3.connect(db_file)
@@ -20,6 +22,11 @@ def init(db_file='/tmp/mysqlslow-sqlite3.db'):
         CHKTIME DATETIME DEFAULT CURRENT_TIMESTAMP, --  COMMENT '检测时间'
         SQLHASH TEXT, -- COMMENT 'SQL的SHA1键值'
         STATE INTEGER DEFAULT 0 -- COMMENT '是否已失效'
+    )""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS T_SLOW_FILE(
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        FILENAME TEXT, -- COMMENT '处理的SLOW LOG文件名'
+        CHKTIME DATETIME DEFAULT CURRENT_TIMESTAMP --  COMMENT '检测时间'
     )""")
     conn.commit()
     conn.close()
@@ -62,6 +69,38 @@ def delete(db_file='/tmp/mysqlslow-sqlite3.db'):
     conn.commit()
     conn.close()
 
+def slow_dump(in_file="",out_file=""):
+    """`in_file` the MySQL Slow log file
+        `out_file` the MySQL Slow dump file
+    """
+    f = open(out_file, 'w')
+    p = subprocess.Popen('/usr/bin/mysqldumpslow ' + in_file, shell=True, universal_newlines=True, stdout=f)
+    ret_code = p.wait()
+    f.flush()
+    f.close()
+    return ret_code
+
+def find_slow_file(path=".", db_file="/tmp/mysqlslow-sqlite3.db"):
+    """ `path` the MySQL datadir
+        `db_file` the SQLite3 db file.
+    """
+    files = next(os.walk(path))[2]
+    filelist = list()
+    conn = sqlite3.connect(db_file)
+    cur = conn.cursor()
+    for f in files:
+        if f.find('slow') >= 0 and f.find('dump') == -1:
+            filelist.append(os.path.join(path, f))
+    for f in filelist:
+        cur.execute("SELECT COUNT(*) FROM T_SLOW_FILE WHERE FILENAME = ?", (f,))
+        row = cur.fetchone()
+        if row[0] == 0:
+            cur.execute("INSERT INTO T_SLOW_FILE(FILENAME) VALUES(?)", (f,))
+            conn.commit()
+            slow_dump(f, f + ".dump")
+            insert_row(slow_file=f + ".dump")
+    conn.close()
+
 def server(db_file='/tmp/mysqlslow-sqlite3.db'):
     host = ''
     port = 7000
@@ -71,6 +110,8 @@ def server(db_file='/tmp/mysqlslow-sqlite3.db'):
     s.bind((host,port))
     s.listen(backlog)
     while 1:
+        if time.strftime('%H:%M') == '16:00':
+            find_slow_file("/var/lib/mysql")
         client, address = s.accept()
         data = client.recv(size)
         conn = sqlite3.connect(db_file)
@@ -91,11 +132,11 @@ def server(db_file='/tmp/mysqlslow-sqlite3.db'):
             client.send("ID: " + data.split(':')[1] + " has been executed.")
         client.close()
         conn.close()
-    if int(time.strftime('%d')) % 10 == 0 and time.strftime('%H:%M') == '02:00':
-        delete()
+        if int(time.strftime('%d')) % 10 == 0 and time.strftime('%H:%M') == '02:00':
+            delete()
+
 
 if __name__ == '__main__':
     if not os.path.isfile('/tmp/mysqlslow-sqlite3.db'):
         init()
-    insert_row()
     server()
