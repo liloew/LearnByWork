@@ -15,7 +15,12 @@ def check_slowsql(host,port,user,passwd,db):
     instrows = db.fetchall()
     for inst in instrows:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((inst[1],inst[3]))
+        try:
+            s.connect((inst[1],inst[3]))
+        except socket.error as e:
+            print "Socket error:{0}\t{1} for host {2}".format(e.errno, e.strerror, inst[1])
+            if e.errno == 111:
+                continue
         s.send('GET LaSt SQL')
         data_collect = ""
         while True:
@@ -45,4 +50,4 @@ def check_slowsql(host,port,user,passwd,db):
 if __name__ == "__main__":
     cg = parser_config()
     en = Encrypt()
-    check_slowsql(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"),"localhost")
+    check_slowsql(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
