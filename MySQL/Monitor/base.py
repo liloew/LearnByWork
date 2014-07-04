@@ -149,7 +149,7 @@ def send_mail(msg=None):
     msg['date'] = time.strftime('%Y-%m-%d %H:%M:%S %A')
     smtp.sendmail('from@126.com','to@wo.cn',msg.as_string())
 
-def parser_config(config_file="monitor.conf"):
+def parser_config(config_file="Conf/monitor.conf"):
     """
     """
     parser = SafeConfigParser()
