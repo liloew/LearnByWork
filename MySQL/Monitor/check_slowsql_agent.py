@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import re
 import time
 import socket
 import sqlite3
@@ -88,8 +89,9 @@ def find_slow_file(path=".", db_file="/tmp/mysqlslow-sqlite3.db"):
     filelist = list()
     conn = sqlite3.connect(db_file)
     cur = conn.cursor()
+    pattern = re.compile(r".*slow.*\d{8}$")
     for f in files:
-        if f.find('slow') >= 0 and f.find('dump') == -1:
+        if pattern.search(f):
             filelist.append(os.path.join(path, f))
     for f in filelist:
         cur.execute("SELECT COUNT(*) FROM T_SLOW_FILE WHERE FILENAME = ?", (f,))
@@ -97,8 +99,8 @@ def find_slow_file(path=".", db_file="/tmp/mysqlslow-sqlite3.db"):
         if row[0] == 0:
             cur.execute("INSERT INTO T_SLOW_FILE(FILENAME) VALUES(?)", (f,))
             conn.commit()
-            slow_dump(f, f + ".dump")
-            insert_row(slow_file=f + ".dump")
+            slow_dump(f, "/tmp/" + f.split("/")[-1] + ".dump")
+            insert_row(slow_file="/tmp/" + f.split("/")[-1] + ".dump")
     conn.close()
 
 def server(db_file='/tmp/mysqlslow-sqlite3.db'):
@@ -110,7 +112,7 @@ def server(db_file='/tmp/mysqlslow-sqlite3.db'):
     s.bind((host,port))
     s.listen(backlog)
     while 1:
-        if time.strftime('%H:%M') == '16:00':
+        if time.strftime('%H:%M') == '04:00':
             find_slow_file("/var/lib/mysql")
         client, address = s.accept()
         data = client.recv(size)
