@@ -7,13 +7,12 @@ import MySQLdb
 from base import DB, Encrypt, parser_config
 
 
-def check_slowsql():
+def check_slowsql(host,port,user,passwd,db):
     host = 'localhost'
     port = 7000
     size = 1024
-    cg = parser_config()
     en = Encrypt()
-    db = DB(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
+    db = DB(host,port,user,passwd,db)
     db.execute("SELECT ID,INET_NTOA(IP) FROM T_INSTANCE ORDER BY ID DESC")
     instrows = db.fetchall()
     for inst in instrows:
@@ -46,4 +45,6 @@ def check_slowsql():
         s.close()
 
 if __name__ == "__main__":
-    check_slowsql()
+    cg = parser_config()
+    en = Encrypt()
+    check_slowsql(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
