@@ -112,7 +112,7 @@ def server(db_file='/tmp/mysqlslow-sqlite3.db'):
     s.bind((host,port))
     s.listen(backlog)
     while 1:
-        if time.strftime('%H:%M') == '04:00':
+        if time.strftime('%M') == '00':
             find_slow_file("/var/lib/mysql")
         client, address = s.accept()
         data = client.recv(size)
