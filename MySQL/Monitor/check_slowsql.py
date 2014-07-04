@@ -17,8 +17,11 @@ def check_slowsql(host,port,user,passwd,db):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.connect((inst[1],inst[3]))
+            print "connected to:{0}\t{1}".format(inst[1],inst[3])
         except socket.error as e:
-            print "Socket error:{0}\t{1} for host {2}".format(e.errno, e.strerror, inst[1])
+            print '\033[91m' + "Socket error:{0}\t{1} for host {2}".format(
+                e.errno, e.strerror, inst[1]) +\
+                '\033[0m'
             if e.errno == 111:
                 continue
         s.send('GET LaSt SQL')
