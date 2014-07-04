@@ -8,16 +8,14 @@ from base import DB, Encrypt, parser_config
 
 
 def check_slowsql(host,port,user,passwd,db):
-    host = 'localhost'
-    port = 7000
     size = 1024
     en = Encrypt()
     db = DB(host,port,user,passwd,db)
-    db.execute("SELECT ID,INET_NTOA(IP) FROM T_INSTANCE ORDER BY ID DESC")
+    db.execute("SELECT ID,INET_NTOA(IP),PORT,SOCKETPORT FROM T_INSTANCE ORDER BY ID DESC")
     instrows = db.fetchall()
     for inst in instrows:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((inst[1],port))
+        s.connect((inst[1],inst[3]))
         s.send('GET LaSt SQL')
         data_collect = ""
         while True:
@@ -38,7 +36,7 @@ def check_slowsql(host,port,user,passwd,db):
                 if not state:
                     print 'UP ID:{0}'.format(insertrow[0])
                     tmps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    tmps.connect((host,port))
+                    tmps.connect((inst[1],inst[3]))
                     tmps.send('UP ID:{0}'.format(insertrow[0]))
                     data = tmps.recv(size)
                     tmps.close()
@@ -47,4 +45,4 @@ def check_slowsql(host,port,user,passwd,db):
 if __name__ == "__main__":
     cg = parser_config()
     en = Encrypt()
-    check_slowsql(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"))
+    check_slowsql(cg.get("host"), int(cg.get("port")), cg.get("user"), en.decrypt(cg.get("passwd")), cg.get("db"),"localhost")
