@@ -9,26 +9,29 @@ import pymongo
 import datetime
 import MySQLdb.cursors
 
-class check_slow_sql(Object):
+class check_slow_sql(object):
     """
     """
-    def __init__(mongohost="localhost", mongoport=27017, dbhost="localhost", dbport=3306, dbuser, dbpasswd, database="mysql"):
-        self.mongohost = mongohost
-        self.mongoport = mongoport
+    def __init__(self,dbuser, dbpasswd, mongoport=27017, dbhost="localhost", database="mysql", mongohost="localhost", dbport=3306):
+        self.mghost = mongohost
+        self.mgport = mongoport
         self.dbhost    = dbhost
         self.dbport    = dbport
         self.dbuser    = dbuser
         self.dbpasswd  = dbpasswd
         self.db        = database
         self.result    = list()
-    def mongo_connect():
+        # Init the MongoDB and MySQL connection
+        self.mongo_connect()
+        self.mysql_connect()
+    def mongo_connect(self):
         """
         """
         try:
             self.mgconn    = pymongo.MongoClient(self.mghost, self.mgport)
         except pymongo.errors.ConnectionFailure as e:
             print e
-    def mysql_connect():
+    def mysql_connect(self):
         """
         """
         try:
@@ -37,14 +40,14 @@ class check_slow_sql(Object):
                 port = self.dbport,
                 user = self.dbuser,
                 passwd = self.dbpasswd,
-                db = self.database,
+                db = self.db,
                 charset = "utf8",
                 cursorclass = MySQLdb.cursors.DictCursor
             )
             self.cur = self.mysqlconn.cursor()
         except MySQLdb.Error as e:
             print e
-    def check_slow_table():
+    def check_slow_table(self):
         yesterday = datetime.date.today()-datetime.timedelta(1)
         SQL = """SELECT DATE_FORMAT(START_TIME,'%Y-%m-%d %H:%i:%S') AS STARTTIME,USER_HOST,TIME_FORMAT(QUERY_TIME,'%H:%i:%S') AS QUERYTIME,
             TIME_FORMAT(LOCK_TIME,'%H:%i:%S') AS LOCKTIME,ROWS_SENT,ROWS_EXAMINED,SQL_TEXT,0 AS STATE
@@ -53,7 +56,7 @@ class check_slow_sql(Object):
         rows = self.cur.fetchall()
         for row in rows:
             self.result.append(row)
-    def store_in_mongodb():
+    def store_in_mongodb(self):
         if self.result == []:
             return
         db = self.mgconn.monitor
@@ -62,22 +65,16 @@ class check_slow_sql(Object):
         self.mgconn.close()
         # Init the self.result as if it may insert twice
         self.result = list()
-    def server(mongohost, mongoport):
-        host = ''
-        port = 7000
+    def server(self,sockhost="localhost", sockport=7000):
         backlog = 5
         size = 1024
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((host,port))
+        s.bind((sockhost,sockport))
         s.listen(backlog)
         while 1:
             client, address = s.accept()
             data = client.recv(size)
             # Del the object and recreate it, do nothing if error
-            try:
-                del(l)
-            except NameError as e:
-                pass
             tmplist = list()
             try:
                 db = self.mgconn['monitor']
@@ -99,11 +96,15 @@ class check_slow_sql(Object):
                 client.send("ID: " + data.split(':')[1] + " has been executed.")
             client.close()
             self.mgconn.close()
-            # Insert and remove from MongoDB at special time
-            if time.strftime('%M') == '00':
-                store_in_mongodb()
+            # Insert and remove from MongoDB at special time when there exists client connection
+            if time.strftime('%M') == '09':
+                self.store_in_mongodb()
                 db.slow_sql.remove({'STATE': 1})
+            try:
+                del(tmplist)
+            except NameError as e:
+                pass
 
 if __name__ == "__main__":
-    css = check_slow_sql(dbuser="root", dbpasswd="123456")
-    css.server('localhost', 27017)
+    css = check_slow_sql("root", "123456")
+    css.server("localhost", 7000)
