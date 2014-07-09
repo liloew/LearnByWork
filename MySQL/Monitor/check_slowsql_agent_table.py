@@ -9,6 +9,39 @@ import pymongo
 import datetime
 import MySQLdb.cursors
 
+def log_rotate(host, port, user, passwd):
+    """rotate the general_log and slow_log
+    """
+    try:
+        conn = MySQLdb.connect(
+            host = host,
+            port = port,
+            user = user,
+            passwd = passwd,
+            db = "mysql",
+            charset = "utf8"
+        )
+        cur = self.mysqlconn.cursor()
+    except MySQLdb.Error as e:
+        print e
+    today = time.strftime('%Y%m%d')
+    general_log = ''.join(('general_log_',today))
+    slow_log = ''.join(('slow_log_',today))
+    SQL = ['DROP TABLE IF EXISTS {0}', 'DROP TABLE IF EXISTS general_log_backup',
+        'CREATE TABLE {0} LIKE general_log',
+        'RENAME TABLE general_log TO general_log_backup, {0} TO general_log']
+    # Rotate the general log
+    for sql in SQL:
+        cur.execute(sql.format(general_log))
+    conn.commit()
+    # Rotate the slow log
+    for sql in SQL:
+        cur.execute(sql.format(slow_log))
+    conn.commit()
+    conn.close()
+    return True
+
+
 class check_slow_sql(object):
     """
     """
