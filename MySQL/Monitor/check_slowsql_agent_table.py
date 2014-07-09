@@ -9,8 +9,11 @@ import pymongo
 import datetime
 import MySQLdb.cursors
 
-def log_rotate(host, port, user, passwd):
+def log_rotate(host, port, user, passwd, rotatype=0):
     """rotate the general_log and slow_log
+       `rotate` -> 0: no rotate any log
+                   1: rotate the slow log
+                   2: rotate general and slow log
     """
     try:
         conn = MySQLdb.connect(
@@ -25,19 +28,22 @@ def log_rotate(host, port, user, passwd):
     except MySQLdb.Error as e:
         print e
     today = time.strftime('%Y%m%d')
-    general_log = ''.join(('general_log_',today))
-    slow_log = ''.join(('slow_log_',today))
-    SQL = ['DROP TABLE IF EXISTS {0}', 'DROP TABLE IF EXISTS general_log_backup',
-        'CREATE TABLE {0} LIKE general_log',
-        'RENAME TABLE general_log TO general_log_backup, {0} TO general_log']
-    # Rotate the general log
-    for sql in SQL:
-        cur.execute(sql.format(general_log))
-    conn.commit()
-    # Rotate the slow log
-    for sql in SQL:
-        cur.execute(sql.format(slow_log))
-    conn.commit()
+    GNL_SQL = ['DROP TABLE IF EXISTS general_log_{0}'.format(today), 'DROP TABLE IF EXISTS general_log_backup',
+        'CREATE TABLE general_log_{0} LIKE general_log'.format(today),
+        'RENAME TABLE general_log TO general_log_backup, general_log_{0} TO general_log'.format(today)]
+    SLW_SQL = ['DROP TABLE IF EXISTS slow_log_{0}'.format(today), 'DROP TABLE IF EXISTS slow_log_backup',
+        'CREATE TABLE slow_log_{0} LIKE slow_log'.format(today),
+        'RENAME TABLE slow_log TO slow_log_backup, slow_log_{0} TO slow_log'.format(today)]
+    if rotate > 1 and cnt == 0:
+        # Rotate the general log
+        for sql in GNL_SQL:
+            cur.execute(sql)
+        conn.commit()
+    if rotate > 0:
+        # Rotate the slow log
+        for sql in SLW_SQL:
+            cur.execute(sql)
+        conn.commit()
     conn.close()
     return True
 
@@ -130,9 +136,12 @@ class check_slow_sql(object):
             client.close()
             self.mgconn.close()
             # Insert and remove from MongoDB at special time when there exists client connection
-            if time.strftime('%M') == '09':
+            if time.strftime('%M') == '00':
                 self.store_in_mongodb()
                 db.slow_sql.remove({'STATE': 1})
+            # rotate the log at 01:00 because the database backup at 02:30
+            if time.strftime("%H") == '01':
+                log_rotate(self.dbhost, self.dbport, self.dbuser, self.dbpasswd, 2)
             try:
                 del(tmplist)
             except NameError as e:
