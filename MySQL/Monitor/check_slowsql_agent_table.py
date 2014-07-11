@@ -24,7 +24,7 @@ def log_rotate(host, port, user, passwd, rotatype=0):
             db = "mysql",
             charset = "utf8"
         )
-        cur = mysqlconn.cursor()
+        cur = conn.cursor()
     except MySQLdb.Error as e:
         print e
     today = time.strftime('%Y%m%d')
@@ -34,12 +34,24 @@ def log_rotate(host, port, user, passwd, rotatype=0):
     SLW_SQL = ['DROP TABLE IF EXISTS slow_log_{0}'.format(today), 'DROP TABLE IF EXISTS slow_log_backup',
         'CREATE TABLE slow_log_{0} LIKE slow_log'.format(today),
         'RENAME TABLE slow_log TO slow_log_backup, slow_log_{0} TO slow_log'.format(today)]
-    if rotate > 1 and cnt == 0:
+    if rotatetype > 1 and cnt == 0:
+        try:
+            cur.execute("SELECT NOW()")
+        except MySQLdb.OperationalError as e:
+            conn = MySQLdb.connect(
+                host = host,
+                port = port,
+                user = user,
+                passwd = passwd,
+                db = "mysql",
+                charset = "utf8"
+            )
+            cur = conn.cursor()
         # Rotate the general log
         for sql in GNL_SQL:
             cur.execute(sql)
-        conn.commit()
-    if rotate > 0:
+            conn.commit()
+    if rotatetype > 0:
         # Rotate the slow log
         for sql in SLW_SQL:
             cur.execute(sql)
@@ -91,16 +103,38 @@ class check_slow_sql(object):
         SQL = """SELECT DATE_FORMAT(START_TIME,'%Y-%m-%d %H:%i:%S') AS STARTTIME,USER_HOST,TIME_FORMAT(QUERY_TIME,'%H:%i:%S') AS QUERYTIME,
             TIME_FORMAT(LOCK_TIME,'%H:%i:%S') AS LOCKTIME,ROWS_SENT,ROWS_EXAMINED,SQL_TEXT,0 AS STATE
             FROM slow_log WHERE START_TIME > '{0}'"""
-        self.cur.execute(SQL.format(yesterday))
+        try:
+            self.cur.execute(SQL.format(yesterday))
+        except MySQLdb.OperationalError as e:
+            self.mysql_connect()
+            self.cur.execute(SQL.format(yesterday))
         rows = self.cur.fetchall()
         for row in rows:
             self.result.append(row)
-    def store_in_mongodb(self):
+    def check_general_table(self):
+        yesterday = datetime.date.today()-datetime.timedelta(1)
+        SQL = """SELECT EVENT_TIME,USER_HOST,THREAD_ID,SERVER_ID,COMMAND_TYPE,ARGUMENT
+            FROM general_log
+            WHERE COMMAND_TYPE = 'Query'
+            AND EVENT_TIME > '{0}'"""
+        try:
+            self.cur.execute(SQL.format(yesterday))
+        except MySQLdb.OperationalError as e:
+            self.mysql_connect()
+            self.cur.execute(SQL.format(yesterday))
+        rows = self.cur.fetchall()
+        for row in rows:
+            self.result.append(row)
+    def store_in_mongodb(self,tp):
         if self.result == []:
             return
         db = self.mgconn.monitor
-        for doc in self.result:
-            db.slow_sql.insert(doc)
+        if tp == 1:
+            for doc in self.result:
+                db.slow_sql.insert(doc)
+        elif tp == 2:
+            for doc in self.result:
+                db.general_sql.insert(doc)
         self.mgconn.close()
         # Init the self.result as if it may insert twice
         self.result = list()
@@ -137,8 +171,12 @@ class check_slow_sql(object):
             self.mgconn.close()
             # Insert and remove from MongoDB at special time when there exists client connection
             if time.strftime('%M') == '00':
-                self.store_in_mongodb()
+                self.check_slow_table()
+                self.store_in_mongodb(1)
+                self.check_general_table()
+                self.store_in_mongodb(2)
                 db.slow_sql.remove({'STATE': 1})
+                db.general_sql.remove({'STATE': 1})
             # rotate the log at 01:00 because the database backup at 02:30
             if time.strftime("%H") == '01':
                 log_rotate(self.dbhost, self.dbport, self.dbuser, self.dbpasswd, 2)
