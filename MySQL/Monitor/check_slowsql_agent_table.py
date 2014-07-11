@@ -149,4 +149,4 @@ class check_slow_sql(object):
 
 if __name__ == "__main__":
     css = check_slow_sql("root", "123456")
-    css.server("localhost", 7000)
+    css.server("0.0.0.0", 7000)
