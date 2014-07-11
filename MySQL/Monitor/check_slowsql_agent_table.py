@@ -24,7 +24,7 @@ def log_rotate(host, port, user, passwd, rotatype=0):
             db = "mysql",
             charset = "utf8"
         )
-        cur = self.mysqlconn.cursor()
+        cur = mysqlconn.cursor()
     except MySQLdb.Error as e:
         print e
     today = time.strftime('%Y%m%d')
