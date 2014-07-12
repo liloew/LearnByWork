@@ -34,7 +34,7 @@ def log_rotate(host, port, user, passwd, rotatype=0):
     SLW_SQL = ['DROP TABLE IF EXISTS slow_log_{0}'.format(today), 'DROP TABLE IF EXISTS slow_log_backup',
         'CREATE TABLE slow_log_{0} LIKE slow_log'.format(today),
         'RENAME TABLE slow_log TO slow_log_backup, slow_log_{0} TO slow_log'.format(today)]
-    if rotatetype > 1 and cnt == 0:
+    if rotatetype > 1:
         try:
             cur.execute("SELECT NOW()")
         except MySQLdb.OperationalError as e:
@@ -173,13 +173,10 @@ class check_slow_sql(object):
             if time.strftime('%M') == '00':
                 self.check_slow_table()
                 self.store_in_mongodb(1)
-                self.check_general_table()
-                self.store_in_mongodb(2)
                 db.slow_sql.remove({'STATE': 1})
-                db.general_sql.remove({'STATE': 1})
             # rotate the log at 01:00 because the database backup at 02:30
             if time.strftime("%H") == '01':
-                log_rotate(self.dbhost, self.dbport, self.dbuser, self.dbpasswd, 2)
+                log_rotate(self.dbhost, self.dbport, self.dbuser, self.dbpasswd, 1)
             try:
                 del(tmplist)
             except NameError as e:
