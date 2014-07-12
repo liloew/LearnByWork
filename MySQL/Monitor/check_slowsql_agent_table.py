@@ -100,7 +100,7 @@ class check_slow_sql(object):
             print e
     def check_slow_table(self):
         yesterday = datetime.date.today()-datetime.timedelta(1)
-        SQL = """SELECT DATE_FORMAT(START_TIME,'%Y-%m-%d %H:%i:%S') AS STARTTIME,USER_HOST,TIME_FORMAT(QUERY_TIME,'%H:%i:%S') AS QUERYTIME,
+        SQL = """SELECT DATE_FORMAT(START_TIME,'%Y-%m-%d %H:%i:%S') AS STARTTIME,USER_HOST,DB,TIME_FORMAT(QUERY_TIME,'%H:%i:%S') AS QUERYTIME,
             TIME_FORMAT(LOCK_TIME,'%H:%i:%S') AS LOCKTIME,ROWS_SENT,ROWS_EXAMINED,SQL_TEXT,0 AS STATE
             FROM slow_log WHERE START_TIME > '{0}'"""
         try:
@@ -113,7 +113,7 @@ class check_slow_sql(object):
             self.result.append(row)
     def check_general_table(self):
         yesterday = datetime.date.today()-datetime.timedelta(1)
-        SQL = """SELECT EVENT_TIME,USER_HOST,THREAD_ID,SERVER_ID,COMMAND_TYPE,ARGUMENT
+        SQL = """SELECT DATE_FORMAT(EVENT_TIME,'%Y-%m-%d %H:%i:%S') AS EVENTTIME,USER_HOST,THREAD_ID,SERVER_ID,COMMAND_TYPE,ARGUMENT,0 AS STATE
             FROM general_log
             WHERE COMMAND_TYPE = 'Query'
             AND EVENT_TIME > '{0}'"""
