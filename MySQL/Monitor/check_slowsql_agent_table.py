@@ -9,6 +9,8 @@ import pymongo
 import datetime
 import MySQLdb.cursors
 
+from bson import ObjectId
+
 def log_rotate(host, port, user, passwd, rotatype=0):
     """rotate the general_log and slow_log
        `rotate` -> 0: no rotate any log
@@ -131,7 +133,10 @@ class check_slow_sql(object):
         db = self.mgconn.monitor
         if tp == 1:
             for doc in self.result:
-                db.slow_sql.insert(doc)
+                try:
+                    db.slow_sql.insert(doc)
+                except pymongo.errors.DuplicateKeyError as e:
+                    print "{0}\t{1}".format(doc, e)
         elif tp == 2:
             for doc in self.result:
                 db.general_sql.insert(doc)
@@ -165,7 +170,10 @@ class check_slow_sql(object):
                 client.send(jsondata.encode("utf8"))
             elif data[0:6] == "UP ID:":
                 print "UPDATE T_SLOW SET STATE=1 WHERE ID={0}".format(data.split(':')[1])
-                db.slow_sql.update({'_id': data.split(':')[1]}, {"STATE": 1})
+                try:
+                    db.slow_sql.update({'_id': ObjectId(data.split(':')[1])}, {"STATE": 1})
+                except pymongo.errors.DuplicateKeyError as e:
+                    print "ObjectId:{0}\t{1}".format(data.split(':')[1], e)
                 client.send("ID: " + data.split(':')[1] + " has been executed.")
             client.close()
             self.mgconn.close()
