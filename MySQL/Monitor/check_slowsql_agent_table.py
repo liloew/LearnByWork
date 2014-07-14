@@ -11,12 +11,17 @@ import MySQLdb.cursors
 
 from bson import ObjectId
 
+global_state = 0
+
 def log_rotate(host, port, user, passwd, rotatype=0):
     """rotate the general_log and slow_log
        `rotate` -> 0: no rotate any log
                    1: rotate the slow log
                    2: rotate general and slow log
     """
+    global global_state
+    if global_state:
+        return
     try:
         conn = MySQLdb.connect(
             host = host,
@@ -54,6 +59,18 @@ def log_rotate(host, port, user, passwd, rotatype=0):
             cur.execute(sql)
             conn.commit()
     if rotatetype > 0:
+        try:
+            cur.execute("SELECT NOW()")
+        except MySQLdb.OperationalError as e:
+            conn = MySQLdb.connect(
+                host = host,
+                port = port,
+                user = user,
+                passwd = passwd,
+                db = "mysql",
+                charset = "utf8"
+            )
+            cur = conn.cursor()
         # Rotate the slow log
         for sql in SLW_SQL:
             cur.execute(sql)
@@ -149,6 +166,7 @@ class check_slow_sql(object):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((sockhost,sockport))
         s.listen(backlog)
+        global global_state
         while 1:
             client, address = s.accept()
             data = client.recv(size)
@@ -183,8 +201,11 @@ class check_slow_sql(object):
                 self.store_in_mongodb(1)
                 db.slow_sql.remove({'STATE': 1})
             # rotate the log at 01:00 because the database backup at 02:30
-            if time.strftime("%H") == '01':
+            if time.strftime("%H") == '01' and global_state == 0:
                 log_rotate(self.dbhost, self.dbport, self.dbuser, self.dbpasswd, 1)
+                global_state = 1
+            if time.strftime("%H:%M") == "00:30":
+                global_state = 0
             try:
                 del(tmplist)
             except NameError as e:
