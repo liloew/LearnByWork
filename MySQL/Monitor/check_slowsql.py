@@ -34,15 +34,20 @@ def check_slowsql(host,port,user,passwd,db):
         json_collect = json.loads(data_collect)
         for row in json_collect:
             try:
-                db.executemany("INSERT INTO T_SLOW(SLOWSQL,CMDTYPE,CHKTIME,SERVERID,INSTID,STATE,USERHOST,OBJID) VALUES(%s,%s,%s)", [ i[1] for i in sorted(row.items())])
+                insert_row = [ i[1] for i in sorted(row.items())]
+                insert_row.append(inst[0])
+                db.executemany("""INSERT INTO
+                    T_SLOW(ONDB,LOCKTIME,QUERYTIME,ROWS_EXAMINED,ROWS_SENT,SQL_TEXT,STARTTIME,STATE,USER_HOST,OBJID,INSTID)
+                    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                    insert_row)
             except MySQLdb.IntegrityError as e:
-                print 'row:{0} occur error:{1}'.format(tuple(insertrow[1:]),e)
+                print 'row:{0} occur error:{1}'.format(tuple(insert_row[0:]),e)
             state = db.commit()
             if not state:
-                print 'UP ID:{0}'.format(insertrow[0])
+                print 'UP ID:{0}'.format(insert_row[9])
                 tmps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 tmps.connect((inst[1],inst[3]))
-                tmps.send('UP ID:{0}'.format(insertrow[0]))
+                tmps.send('UP ID:{0}'.format(insert_row[9]))
                 data = tmps.recv(size)
                 tmps.close()
         s.close()
