@@ -13,7 +13,7 @@ from bson import ObjectId
 
 global_state = 0
 
-def log_rotate(host, port, user, passwd, rotatype=0):
+def log_rotate(host, port, user, passwd, rotatetype=0):
     """rotate the general_log and slow_log
        `rotate` -> 0: no rotate any log
                    1: rotate the slow log
