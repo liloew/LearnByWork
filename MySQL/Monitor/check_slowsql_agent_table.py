@@ -171,7 +171,7 @@ class check_slow_sql(object):
             elif data[0:6] == "UP ID:":
                 print "UPDATE T_SLOW SET STATE=1 WHERE ID={0}".format(data.split(':')[1])
                 try:
-                    db.slow_sql.update({'_id': ObjectId(data.split(':')[1])}, {"STATE": 1})
+                    db.slow_sql.update({'_id': ObjectId(data.split(':')[1])}, {"$set": {"STATE": 1}})
                 except pymongo.errors.DuplicateKeyError as e:
                     print "ObjectId:{0}\t{1}".format(data.split(':')[1], e)
                 client.send("ID: " + data.split(':')[1] + " has been executed.")
