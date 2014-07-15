@@ -36,7 +36,7 @@ class HomeHandler(BaseHandler):
         SQL = """SELECT ID,INSTANCE,EVENT_NAME,EVENT_BODY,LEVEL,RECEIVER FROM T_ALERT limit 10"""
         self.db.execute(SQL)
         alertrows = self.db.fetchall()
-        SQL = """SELECT ID,CNT,SQLHASH FROM T_SLOW ORDER BY ID DESC LIMIT 10"""
+        SQL = """SELECT ID,INSTID,OBJID FROM T_SLOW ORDER BY ID DESC LIMIT 10"""
         self.db.execute(SQL)
         slowsqls = self.db.fetchall()
         SQL = """SELECT ID FROM T_INSTANCE"""
@@ -80,11 +80,11 @@ class SQLHandler(BaseHandler):
     """
     def get(self):
         sqlhash = self.get_argument("sqlhash")
-        SQL = """SELECT NAME,INET_NTOA(IP),CNT,TIME,ROS,SLOWSQL,CHKTIME,T_SLOW.STATE
+        SQL = """SELECT NAME,INET_NTOA(IP),ROWS_SENT,STARTTIME,ROWS_EXAMINED,SQL_TEXT,QUERYTIME,T_SLOW.STATE
             FROM T_SLOW
             INNER JOIN T_INSTANCE
             ON INSTID = T_INSTANCE.ID
-            WHERE SQLHASH = '{0}'"""
+            WHERE OBJID = '{0}'"""
         self.db.execute(SQL.format(sqlhash))
         row = self.db.fetchone()
         self.render("slow.html", sqlhash=row)
