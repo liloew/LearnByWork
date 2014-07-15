@@ -153,7 +153,7 @@ class check_slow_sql(object):
                 try:
                     db.slow_sql.insert(doc)
                 except pymongo.errors.DuplicateKeyError as e:
-                    print "{0}\t{1}".format(doc, e)
+                    print u"{0}\t{1}".format(doc, e)
         elif tp == 2:
             for doc in self.result:
                 db.general_sql.insert(doc)
