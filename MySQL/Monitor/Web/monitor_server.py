@@ -36,7 +36,7 @@ class HomeHandler(BaseHandler):
         SQL = """SELECT ID,INSTANCE,EVENT_NAME,EVENT_BODY,LEVEL,RECEIVER FROM T_ALERT limit 10"""
         self.db.execute(SQL)
         alertrows = self.db.fetchall()
-        SQL = """SELECT ID,INSTID,OBJID FROM T_SLOW ORDER BY ID DESC LIMIT 10"""
+        SQL = """SELECT ID,INSTID,OBJID FROM T_SLOW ORDER BY ID DESC LIMIT 11"""
         self.db.execute(SQL)
         slowsqls = self.db.fetchall()
         SQL = """SELECT ID FROM T_INSTANCE"""
