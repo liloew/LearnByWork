@@ -132,7 +132,7 @@ class Encrypt(object):
             return
         return self.cipher.decrypt(base64.b64decode(passwd)).rstrip(self.PADDING)
 
-def send_mail(msg=None):
+def send_mail(header='MySQL告警',msg=None):
     """
     """
     # should mail me
@@ -143,7 +143,7 @@ def send_mail(msg=None):
     smtp.connect('smtp.126.com')
     smtp.login('from@126.com','password')
     msg = MIMEText(msg_body)
-    msg['Subject'] = Header('MySQL告警', 'utf-8')
+    msg['Subject'] = Header(header, 'utf-8')
     msg['From'] = 'from@126.com'
     msg['To'] = 'to@wo.cn'
     msg['date'] = time.strftime('%Y-%m-%d %H:%M:%S %A')
