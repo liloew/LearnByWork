@@ -40,10 +40,16 @@ def store_slow(results,instid,conn):
     sets = set(i[0] for i in objids)
     for i in xrange(len(rows)):
         row = rows.pop()
-        sqlhash = hashlib.sha1(row[10]).hexdigest()
+        try:
+            sqlhash = hashlib.sha1(row[10].encode('utf-8')).hexdigest()
+        except UnicodeEncodeError:
+            print "SQL:{0} can not be hash.".format(row[10])
         if sqlhash in sets:
             continue
+        if row[10].startswith('load') or row[10].startswith('LOAD'):
+            continue
         conn.execute(sql % (instid,time.strftime('%Y-%m-%d %H:%M:%S'),row[3],row[2],row[1],row[4],row[5],row[6],row[10],sqlhash))
+        sets.add(sqlhash)
         conn.commit()
     if rows == []:
         return True
@@ -65,4 +71,6 @@ def main():
             truncate_slow(inst[1],inst[2],inst[3],en.decrypt(inst[4]))
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        time.sleep(60)
